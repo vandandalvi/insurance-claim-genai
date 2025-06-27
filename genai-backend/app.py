@@ -9,8 +9,9 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# ✅ Use a supported model
-genai.configure(api_key="AIzaSyBFDlFeegYHOL-ZxOP_LK7d0aNvZ2spmxI")  # Replace with your real API key
+# Get API key from environment variable or use default
+api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyBFDlFeegYHOL-ZxOP_LK7d0aNvZ2spmxI")
+genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 def analyze_fraud_indicators(extracted_data, user_data):

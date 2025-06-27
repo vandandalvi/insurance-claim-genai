@@ -4,8 +4,9 @@ services:
     name: claimsense-backend
     env: python
     plan: free
-    buildCommand: cd genai-backend && pip install -r requirements.txt
-    startCommand: cd genai-backend && python app.py
+    rootDir: genai-backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
     envVars:
       - key: GEMINI_API_KEY
         sync: false
@@ -17,8 +18,9 @@ services:
     name: claimsense-chatbot
     env: python
     plan: free
-    buildCommand: cd genai-backend && pip install -r requirements.txt
-    startCommand: cd genai-backend && python appi.py
+    rootDir: genai-backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python appi.py
     envVars:
       - key: GEMINI_API_KEY
         sync: false
@@ -30,8 +32,9 @@ services:
     name: claimsense-frontend
     env: static
     plan: free
-    buildCommand: cd client && npm install && npm run build
-    staticPublishPath: client/dist
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
         value: https://claimsense-backend.onrender.com
