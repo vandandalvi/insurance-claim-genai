@@ -40,6 +40,6 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://claimsense-backend.onrender.com
+        value: https://claimsense-backend-71pr.onrender.com
       - key: VITE_CHAT_URL
-        value: https://claimsense-chatbot.onrender.com 
+        value: https://claimsense-chatbot-71pr.onrender.com 

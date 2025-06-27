@@ -7,7 +7,7 @@ import random
 app = Flask(__name__)
 CORS(app)
 
-# Get API key from environment variable or use default
+
 chat_api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyDjtjrP1mfOQ-RiWSOURWCuca_HeSaII7Y")
 chat_model = None
 

@@ -53,7 +53,7 @@ export default function Claim() {
       console.log("Sending request to backend...");
       // Use production URLs if available, fallback to localhost for development
       const apiUrl = import.meta.env.VITE_API_URL || 
-                    (window.location.hostname === 'localhost' ? "http://localhost:5000" : "https://claimsense-backend.onrender.com");
+                    (window.location.hostname === 'localhost' ? "http://localhost:5000" : "https://claimsense-backend-71pr.onrender.com");
       const res = await fetch(`${apiUrl}/upload`, {
         method: "POST",
         body: formData,

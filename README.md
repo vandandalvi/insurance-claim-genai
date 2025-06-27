@@ -184,6 +184,11 @@ insurance-claim-genai/
 2. Deploy with build command: `pip install -r requirements.txt`
 3. Start command: `python app.py`
 
+### Live Demo URLs
+- **Frontend**: https://claimsense-frontend-71pr.onrender.com
+- **Backend**: https://claimsense-backend-71pr.onrender.com
+- **Chatbot**: https://claimsense-chatbot-71pr.onrender.com
+
 ## 🤝 Contributing
 
 1. Fork the repository

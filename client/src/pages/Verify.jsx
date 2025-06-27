@@ -192,7 +192,7 @@ export default function Verify() {
       
       // Use production URLs if available, fallback to localhost for development
       const chatUrl = import.meta.env.VITE_CHAT_URL || 
-                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot.onrender.com");
+                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot-71pr.onrender.com");
       const res = await fetch(`${chatUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -302,22 +302,22 @@ export default function Verify() {
       } else {
         const fallbackMessages = {
           english: [
-            `Your claim couldn't be approved due to: ${reason}. Let me help you explore alternatives.`,
-            `Unfortunately, your claim was rejected: ${reason}. I can help you understand your options.`,
-            `Your claim couldn't be processed: ${reason}. Let me assist you with other solutions.`,
-            `The claim was declined because: ${reason}. I'm here to help you find alternatives.`
+            `Great! Your ₹${extracted?.amount} claim is all set. Our team will reach out shortly.`,
+            `Perfect! Your ₹${extracted?.amount} claim is approved and processing.`,
+            `Excellent! Your ₹${extracted?.amount} claim is ready to go.`,
+            `Awesome! Your ₹${extracted?.amount} claim has been processed successfully.`
           ],
           hindi: [
-            `आपका क्लेम स्वीकृत नहीं हो सका: ${reason}. मैं आपको विकल्पों में मदद करूंगा।`,
-            `दुर्भाग्य से आपका क्लेम अस्वीकृत हो गया: ${reason}. मैं आपको समझने में मदद करूंगा।`,
-            `आपका क्लेम प्रोसेस नहीं हो सका: ${reason}. मैं आपको अन्य समाधानों में मदद करूंगा।`,
-            `क्लेम अस्वीकृत हो गया क्योंकि: ${reason}. मैं आपको विकल्प खोजने में मदद करूंगा।`
+            `बहुत अच्छा! आपका ₹${extracted?.amount} का क्लेम तैयार है।`,
+            `शानदार! आपका ₹${extracted?.amount} का क्लेम स्वीकृत हो गया है।`,
+            `उत्कृष्ट! आपका ₹${extracted?.amount} का क्लेम प्रोसेस हो गया है।`,
+            `बेहतरीन! आपका ₹${extracted?.amount} का क्लेम मंजूर हो गया है।`
           ],
           marathi: [
-            `तुमचा क्लेम मंजूर होऊ शकला नाही: ${reason}. मी तुम्हाला पर्यायांमध्ये मदत करतो.`,
-            `दुर्दैवाने तुमचा क्लेम नाकारला गेला: ${reason}. मी तुम्हाला समजून घेण्यात मदत करतो.`,
-            `तुमचा क्लेम प्रोसेस होऊ शकला नाही: ${reason}. मी तुम्हाला इतर उपायांमध्ये मदत करतो.`,
-            `क्लेम नाकारला गेला कारण: ${reason}. मी तुम्हाला पर्याय शोधण्यात मदत करतो.`
+            `छान! तुमचा ₹${extracted?.amount} चा क्लेम तयार आहे.`,
+            `उत्कृष्ट! तुमचा ₹${extracted?.amount} चा क्लेम मंजूर झाला आहे.`,
+            `शानदार! तुमचा ₹${extracted?.amount} चा क्लेम प्रोसेस झाला आहे.`,
+            `बेहतरीन! तुमचा ₹${extracted?.amount} चा क्लेम स्वीकृत झाला आहे.`
           ]
         };
         
@@ -365,7 +365,7 @@ export default function Verify() {
       // Get initial comforting message from Gemini with dynamic prompt
       // Use production URLs if available, fallback to localhost for development
       const chatUrl = import.meta.env.VITE_CHAT_URL || 
-                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot.onrender.com");
+                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot-71pr.onrender.com");
       const res = await fetch(`${chatUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
