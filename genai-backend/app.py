@@ -4,6 +4,7 @@ import google.generativeai as genai
 from PIL import Image
 import re
 import json
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -149,4 +150,5 @@ def upload():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)

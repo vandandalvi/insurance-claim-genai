@@ -1,0 +1,39 @@
+services:
+  # Main Backend Service
+  - type: web
+    name: claimsense-backend
+    env: python
+    plan: free
+    buildCommand: cd genai-backend && pip install -r requirements.txt
+    startCommand: cd genai-backend && python app.py
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FLASK_ENV
+        value: production
+
+  # Chatbot Service
+  - type: web
+    name: claimsense-chatbot
+    env: python
+    plan: free
+    buildCommand: cd genai-backend && pip install -r requirements.txt
+    startCommand: cd genai-backend && python appi.py
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FLASK_ENV
+        value: production
+
+  # Frontend Static Site
+  - type: web
+    name: claimsense-frontend
+    env: static
+    plan: free
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: client/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://claimsense-backend.onrender.com
+      - key: VITE_CHAT_URL
+        value: https://claimsense-chatbot.onrender.com 

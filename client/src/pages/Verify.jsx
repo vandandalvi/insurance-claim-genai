@@ -190,7 +190,8 @@ export default function Verify() {
       // Include conversation history for better context
       const conversationHistory = messages.map(msg => `${msg.sender}: ${msg.text}`).join('\n');
       
-      const res = await fetch('http://localhost:5001/chat', {
+      const chatUrl = import.meta.env.VITE_CHAT_URL || "http://localhost:5001";
+      const res = await fetch(`${chatUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -360,7 +361,8 @@ export default function Verify() {
     
     try {
       // Get initial comforting message from Gemini with dynamic prompt
-      const res = await fetch('http://localhost:5001/chat', {
+      const chatUrl = import.meta.env.VITE_CHAT_URL || "http://localhost:5001";
+      const res = await fetch(`${chatUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
