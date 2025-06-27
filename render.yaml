@@ -12,6 +12,8 @@ services:
         sync: false
       - key: FLASK_ENV
         value: production
+      - key: PYTHON_VERSION
+        value: "3.11"
 
   # Chatbot Service
   - type: web
@@ -26,6 +28,8 @@ services:
         sync: false
       - key: FLASK_ENV
         value: production
+      - key: PYTHON_VERSION
+        value: "3.11"
 
   # Frontend Static Site
   - type: web
