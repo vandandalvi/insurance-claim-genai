@@ -190,7 +190,9 @@ export default function Verify() {
       // Include conversation history for better context
       const conversationHistory = messages.map(msg => `${msg.sender}: ${msg.text}`).join('\n');
       
-      const chatUrl = import.meta.env.VITE_CHAT_URL || "http://localhost:5001";
+      // Use production URLs if available, fallback to localhost for development
+      const chatUrl = import.meta.env.VITE_CHAT_URL || 
+                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot.onrender.com");
       const res = await fetch(`${chatUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -361,7 +363,9 @@ export default function Verify() {
     
     try {
       // Get initial comforting message from Gemini with dynamic prompt
-      const chatUrl = import.meta.env.VITE_CHAT_URL || "http://localhost:5001";
+      // Use production URLs if available, fallback to localhost for development
+      const chatUrl = import.meta.env.VITE_CHAT_URL || 
+                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot.onrender.com");
       const res = await fetch(`${chatUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
