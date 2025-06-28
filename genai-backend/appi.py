@@ -18,8 +18,8 @@ if not chat_api_key:
     print("📝 Please set your API key using one of these methods:")
     print("   1. Create a .env file in genai-backend folder with: GEMINI_API_KEY=your_key_here")
     print("   2. Set environment variable: export GEMINI_API_KEY=your_key_here")
-    print("   3. Replace 'YOUR_ACTUAL_GEMINI_API_KEY_HERE' in this file with your key")
-    chat_api_key = "YOUR_ACTUAL_GEMINI_API_KEY_HERE"  # Replace this with your actual API key
+    print("   3. Replace 'YOUR_VALID_GEMINI_API_KEY_HERE' in this file with your key")
+    chat_api_key = "AIzaSyC9uHGCFi76BCW0HrZQpVPv6DQHZzDa_UM"  # Replace this with your actual API key
 
 chat_model = None
 

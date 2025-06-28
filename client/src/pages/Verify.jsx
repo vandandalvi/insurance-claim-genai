@@ -192,7 +192,7 @@ export default function Verify() {
       
       // Use production URLs if available, fallback to localhost for development
       const chatUrl = import.meta.env.VITE_CHAT_URL || 
-                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot-71pr.onrender.com");
+                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot.onrender.com");
       const res = await fetch(`${chatUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -365,7 +365,7 @@ export default function Verify() {
       // Get initial comforting message from Gemini with dynamic prompt
       // Use production URLs if available, fallback to localhost for development
       const chatUrl = import.meta.env.VITE_CHAT_URL || 
-                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot-71pr.onrender.com");
+                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot.onrender.com");
       const res = await fetch(`${chatUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -594,10 +594,10 @@ export default function Verify() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Aadhar Number
               </label>
-              <input
-                type="text"
-                value={aadhar}
-                onChange={(e) => setAadhar(e.target.value)}
+      <input
+        type="text"
+        value={aadhar}
+        onChange={(e) => setAadhar(e.target.value)}
                 placeholder="Enter your Aadhar Number"
                 maxLength={14}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50 focus:bg-white"
@@ -986,8 +986,8 @@ export default function Verify() {
                 </button>
               </div>
             </div>
-          </div>
-        )}
+        </div>
+      )}
 
         {/* Help Section */}
         <div className="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">

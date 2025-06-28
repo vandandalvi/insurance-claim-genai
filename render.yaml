@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: genai-backend
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    startCommand: gunicorn app:app
     envVars:
       - key: GEMINI_API_KEY
         sync: false
@@ -40,6 +40,6 @@ services:
     staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        value: https://claimsense-backend-71pr.onrender.com
+        value: https://claimsense-backend.onrender.com
       - key: VITE_CHAT_URL
-        value: https://claimsense-chatbot-71pr.onrender.com 
+        value: https://claimsense-chatbot.onrender.com 
