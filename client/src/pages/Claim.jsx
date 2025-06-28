@@ -39,6 +39,14 @@ export default function Claim() {
     try {
       console.log('Starting camera...');
       setCameraError(null);
+      showLoadingIndicator();
+      
+      // Add timeout for camera loading
+      const cameraTimeout = setTimeout(() => {
+        console.log('Camera loading timeout');
+        setCameraError('Camera took too long to load. Please try again or use file upload.');
+        hideLoadingIndicator();
+      }, 10000); // 10 seconds timeout
       
       // Check if camera is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -46,49 +54,112 @@ export default function Claim() {
         setCameraAvailable(false);
         setCameraError('Camera is not supported in this browser. Please use a modern browser or upload a file instead.');
         alert('Camera is not supported in this browser. Please use a modern browser or upload a file instead.');
+        hideLoadingIndicator();
+        clearTimeout(cameraTimeout);
         return;
       }
 
       console.log('Camera API supported, requesting access...');
       
-      // Try to get camera stream with simpler constraints
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: {
-          facingMode: 'environment' // Use back camera
-        },
-        audio: false
-      });
+      // Try to get camera stream with fallback constraints
+      let stream;
+      try {
+        // First try with back camera
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: {
+            facingMode: 'environment' // Use back camera
+          },
+          audio: false
+        });
+      } catch (backCameraError) {
+        console.log('Back camera failed, trying front camera...');
+        try {
+          // Fallback to front camera
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: {
+              facingMode: 'user' // Use front camera
+            },
+            audio: false
+          });
+        } catch (frontCameraError) {
+          console.log('Front camera failed, trying any camera...');
+          // Last resort: try any camera
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: true,
+            audio: false
+          });
+        }
+      }
       
       console.log('Camera stream obtained:', stream);
+      console.log('Stream tracks:', stream.getTracks());
+      
       setCameraStream(stream);
       setShowCamera(true);
       setCameraAvailable(true);
       
-      // Set up video element
+      // Set up video element with better error handling
       if (videoRef.current) {
         console.log('Setting up video element...');
+        
+        // Clear any existing stream
+        videoRef.current.srcObject = null;
+        
+        // Set the new stream
         videoRef.current.srcObject = stream;
         
         // Wait for video to load
         videoRef.current.onloadedmetadata = () => {
           console.log('Video metadata loaded, starting playback...');
+          console.log('Video dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
+          
           videoRef.current.play().then(() => {
             console.log('Video playback started successfully');
+            hideLoadingIndicator();
+            clearTimeout(cameraTimeout);
           }).catch((playError) => {
             console.error('Error starting video playback:', playError);
+            setCameraError('Failed to start video playback: ' + playError.message);
+            hideLoadingIndicator();
+            clearTimeout(cameraTimeout);
           });
+        };
+        
+        videoRef.current.onloadeddata = () => {
+          console.log('Video data loaded');
+        };
+        
+        videoRef.current.oncanplay = () => {
+          console.log('Video can play');
+        };
+        
+        videoRef.current.onplaying = () => {
+          console.log('Video is playing');
+          hideLoadingIndicator();
+          clearTimeout(cameraTimeout);
         };
         
         videoRef.current.onerror = (error) => {
           console.error('Video element error:', error);
+          setCameraError('Video element error: ' + error.message);
+          hideLoadingIndicator();
+          clearTimeout(cameraTimeout);
         };
+        
+        // Force video to load
+        videoRef.current.load();
+        
       } else {
         console.error('Video ref not available');
+        setCameraError('Video element not found');
+        hideLoadingIndicator();
+        clearTimeout(cameraTimeout);
       }
       
     } catch (error) {
       console.error('Error accessing camera:', error);
       setCameraAvailable(false);
+      hideLoadingIndicator();
       
       // Provide specific error messages
       let errorMessage = 'Unable to access camera. ';
@@ -303,6 +374,20 @@ export default function Claim() {
     testCameraAvailability();
   }, []);
 
+  const hideLoadingIndicator = () => {
+    const loadingElement = document.getElementById('camera-loading');
+    if (loadingElement) {
+      loadingElement.style.display = 'none';
+    }
+  };
+
+  const showLoadingIndicator = () => {
+    const loadingElement = document.getElementById('camera-loading');
+    if (loadingElement) {
+      loadingElement.style.display = 'flex';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
@@ -463,7 +548,11 @@ export default function Claim() {
                     playsInline
                     muted
                     className="w-full rounded-lg border-2 border-gray-300"
-                    style={{ minHeight: '300px', backgroundColor: '#000' }}
+                    style={{ 
+                      minHeight: '300px', 
+                      backgroundColor: '#000',
+                      objectFit: 'cover'
+                    }}
                     onLoadStart={() => console.log('Video load started')}
                     onLoadedData={() => console.log('Video data loaded')}
                     onCanPlay={() => console.log('Video can play')}
@@ -474,6 +563,15 @@ export default function Claim() {
                   {/* Camera Status */}
                   <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
                     📹 Live
+                  </div>
+                  
+                  {/* Loading Indicator */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 rounded-lg" 
+                       id="camera-loading">
+                    <div className="text-white text-center p-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                      <p className="text-sm">Loading camera...</p>
+                    </div>
                   </div>
                   
                   {/* Camera Not Working Notice */}
