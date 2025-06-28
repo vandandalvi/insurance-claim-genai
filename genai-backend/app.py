@@ -5,12 +5,24 @@ from PIL import Image
 import re
 import json
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Get API key from environment variable or use default
-api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyBFDlFeegYHOL-ZxOP_LK7d0aNvZ2spmxI")
+# Get API key from environment variable
+api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    print("⚠️  WARNING: GEMINI_API_KEY not found in environment variables!")
+    print("📝 Please set your API key using one of these methods:")
+    print("   1. Create a .env file in genai-backend folder with: GEMINI_API_KEY=your_key_here")
+    print("   2. Set environment variable: export GEMINI_API_KEY=your_key_here")
+    print("   3. Replace 'YOUR_ACTUAL_GEMINI_API_KEY_HERE' in this file with your key")
+    api_key = "YOUR_ACTUAL_GEMINI_API_KEY_HERE"  # Replace this with your actual API key
+
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-1.5-flash")
 

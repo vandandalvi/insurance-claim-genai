@@ -3,12 +3,24 @@ from flask_cors import CORS
 import google.generativeai as genai
 import os
 import random
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
+# Get API key from environment variable
+chat_api_key = os.environ.get("GEMINI_API_KEY")
+if not chat_api_key:
+    print("⚠️  WARNING: GEMINI_API_KEY not found in environment variables!")
+    print("📝 Please set your API key using one of these methods:")
+    print("   1. Create a .env file in genai-backend folder with: GEMINI_API_KEY=your_key_here")
+    print("   2. Set environment variable: export GEMINI_API_KEY=your_key_here")
+    print("   3. Replace 'YOUR_ACTUAL_GEMINI_API_KEY_HERE' in this file with your key")
+    chat_api_key = "YOUR_ACTUAL_GEMINI_API_KEY_HERE"  # Replace this with your actual API key
 
-chat_api_key = os.environ.get("GEMINI_API_KEY", "AIzaSyDjtjrP1mfOQ-RiWSOURWCuca_HeSaII7Y")
 chat_model = None
 
 def setup_chat_model():
