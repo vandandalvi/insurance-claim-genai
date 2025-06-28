@@ -12,14 +12,14 @@ app = Flask(__name__)
 CORS(app)
 
 # Get API key from environment variable
-chat_api_key = os.environ.get("GEMINI_API_KEY")
+chat_api_key = os.environ.get("GEMINI_API_KEY_CHATBOT")
 if not chat_api_key:
-    print("⚠️  WARNING: GEMINI_API_KEY not found in environment variables!")
-    print("📝 Please set your API key using one of these methods:")
-    print("   1. Create a .env file in genai-backend folder with: GEMINI_API_KEY=your_key_here")
-    print("   2. Set environment variable: export GEMINI_API_KEY=your_key_here")
-    print("   3. Replace 'YOUR_VALID_GEMINI_API_KEY_HERE' in this file with your key")
-    chat_api_key = "AIzaSyC9uHGCFi76BCW0HrZQpVPv6DQHZzDa_UM"  # Replace this with your actual API key
+    print("⚠️  WARNING: GEMINI_API_KEY_CHATBOT not found in environment variables!")
+    print("📝 Please set your chatbot API key using one of these methods:")
+    print("   1. Create a .env file in genai-backend folder with: GEMINI_API_KEY_CHATBOT=your_key_here")
+    print("   2. Set environment variable: export GEMINI_API_KEY_CHATBOT=your_key_here")
+    print("   3. Replace the API key in this file with your actual chatbot API key")
+    chat_api_key = "AIzaSyC9uHGCFi76BCW0HrZQpVPv6DQHZzDa_UM"  # Replace this with your actual chatbot API key
 
 chat_model = None
 

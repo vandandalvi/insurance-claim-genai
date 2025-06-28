@@ -10,6 +10,7 @@ services:
     envVars:
       - key: GEMINI_API_KEY
         sync: false
+        description: "API key for main backend (app.py)"
       - key: FLASK_ENV
         value: production
       - key: PYTHON_VERSION
@@ -24,22 +25,10 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: python appi.py
     envVars:
-      - key: GEMINI_API_KEY
+      - key: GEMINI_API_KEY_CHATBOT
         sync: false
+        description: "API key for chatbot (appi.py)"
       - key: FLASK_ENV
         value: production
       - key: PYTHON_VERSION
-        value: "3.11.7"
-
-  # Frontend Static Site
-  - type: web
-    name: claimsense-frontend
-    env: static
-    rootDir: client
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        value: https://claimsense-backend.onrender.com
-      - key: VITE_CHAT_URL
-        value: https://claimsense-chatbot.onrender.com 
+        value: "3.11.7" 
