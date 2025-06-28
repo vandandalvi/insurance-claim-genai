@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Upload, FileText, CheckCircle, XCircle, User, Calendar, MapPin, DollarSign, Activity, ArrowRight, AlertCircle, Loader, AlertTriangle, Eye, Clock, Building, Camera } from 'lucide-react';
 import { createWorker } from 'tesseract.js';
@@ -37,37 +37,55 @@ export default function Claim() {
 
   const startCamera = async () => {
     try {
+      console.log('Starting camera...');
       setCameraError(null);
       
       // Check if camera is supported
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.log('Camera API not supported');
         setCameraAvailable(false);
         setCameraError('Camera is not supported in this browser. Please use a modern browser or upload a file instead.');
         alert('Camera is not supported in this browser. Please use a modern browser or upload a file instead.');
         return;
       }
 
-      // Try to get camera stream with better error handling
+      console.log('Camera API supported, requesting access...');
+      
+      // Try to get camera stream with simpler constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment', // Use back camera
-          width: { ideal: 1920, min: 640 },
-          height: { ideal: 1080, min: 480 }
+        video: {
+          facingMode: 'environment' // Use back camera
         },
         audio: false
       });
       
+      console.log('Camera stream obtained:', stream);
       setCameraStream(stream);
       setShowCamera(true);
       setCameraAvailable(true);
       
+      // Set up video element
       if (videoRef.current) {
+        console.log('Setting up video element...');
         videoRef.current.srcObject = stream;
+        
         // Wait for video to load
         videoRef.current.onloadedmetadata = () => {
-          videoRef.current.play();
+          console.log('Video metadata loaded, starting playback...');
+          videoRef.current.play().then(() => {
+            console.log('Video playback started successfully');
+          }).catch((playError) => {
+            console.error('Error starting video playback:', playError);
+          });
         };
+        
+        videoRef.current.onerror = (error) => {
+          console.error('Video element error:', error);
+        };
+      } else {
+        console.error('Video ref not available');
       }
+      
     } catch (error) {
       console.error('Error accessing camera:', error);
       setCameraAvailable(false);
@@ -92,6 +110,7 @@ export default function Claim() {
       }
       
       setCameraError(errorMessage);
+      console.log('Camera error:', errorMessage);
       alert(errorMessage);
       
       // Fallback: Show file upload option
@@ -254,6 +273,36 @@ export default function Claim() {
     }
   };
 
+  // Test camera availability on component mount
+  const testCameraAvailability = async () => {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraAvailable(false);
+        return;
+      }
+      
+      // Just check if we can enumerate devices
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      
+      if (videoDevices.length === 0) {
+        setCameraAvailable(false);
+        setCameraError('No camera found on this device');
+      } else {
+        setCameraAvailable(true);
+        console.log('Camera devices found:', videoDevices.length);
+      }
+    } catch (error) {
+      console.error('Error testing camera availability:', error);
+      setCameraAvailable(false);
+    }
+  };
+
+  // Test camera on component mount
+  useEffect(() => {
+    testCameraAvailability();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
@@ -363,6 +412,19 @@ export default function Claim() {
                 📷 Open Camera
               </button>
               
+              {/* Camera Test Button for Debugging */}
+              <button
+                onClick={() => {
+                  console.log('Testing camera...');
+                  console.log('navigator.mediaDevices:', navigator.mediaDevices);
+                  console.log('getUserMedia available:', !!navigator.mediaDevices?.getUserMedia);
+                  testCameraAvailability();
+                }}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+              >
+                🔧 Test Camera
+              </button>
+              
               {/* Camera Fallback Notice */}
               <p className="text-xs text-gray-500 mt-2">
                 💡 If camera doesn't work, use file upload above
@@ -401,7 +463,12 @@ export default function Claim() {
                     playsInline
                     muted
                     className="w-full rounded-lg border-2 border-gray-300"
-                    style={{ minHeight: '300px' }}
+                    style={{ minHeight: '300px', backgroundColor: '#000' }}
+                    onLoadStart={() => console.log('Video load started')}
+                    onLoadedData={() => console.log('Video data loaded')}
+                    onCanPlay={() => console.log('Video can play')}
+                    onPlaying={() => console.log('Video is playing')}
+                    onError={(e) => console.error('Video error:', e)}
                   />
                   
                   {/* Camera Status */}

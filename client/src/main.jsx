@@ -9,6 +9,7 @@ import Verify from './pages/Verify.jsx';
 import Chat from './pages/Chat.jsx';
 import FinalSubmit from './pages/FinalSubmit.jsx';
 import ThankYou from './pages/ThankYou.jsx';
+import CameraTest from './pages/CameraTest.jsx';
 
 // ✅ Clear user on full page reload
 localStorage.removeItem('user');
@@ -24,6 +25,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path="/chat" element={<Chat />} />
       <Route path="/submit" element={<FinalSubmit />} />
       <Route path="/thank-you" element={<ThankYou />} />
+      <Route path="/camera-test" element={<CameraTest />} />
     </Routes>
   </BrowserRouter>
 );
