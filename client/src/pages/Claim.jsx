@@ -12,6 +12,8 @@ export default function Claim() {
   const [processingStep, setProcessingStep] = useState('');
   const [showCamera, setShowCamera] = useState(false);
   const [cameraStream, setCameraStream] = useState(null);
+  const [cameraAvailable, setCameraAvailable] = useState(true);
+  const [cameraError, setCameraError] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
   const [verificationError, setVerificationError] = useState('');
@@ -35,21 +37,65 @@ export default function Claim() {
 
   const startCamera = async () => {
     try {
+      setCameraError(null);
+      
+      // Check if camera is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraAvailable(false);
+        setCameraError('Camera is not supported in this browser. Please use a modern browser or upload a file instead.');
+        alert('Camera is not supported in this browser. Please use a modern browser or upload a file instead.');
+        return;
+      }
+
+      // Try to get camera stream with better error handling
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          facingMode: 'environment',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        } 
+          facingMode: 'environment', // Use back camera
+          width: { ideal: 1920, min: 640 },
+          height: { ideal: 1080, min: 480 }
+        },
+        audio: false
       });
+      
       setCameraStream(stream);
       setShowCamera(true);
+      setCameraAvailable(true);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Wait for video to load
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current.play();
+        };
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Unable to access camera. Please check permissions.');
+      setCameraAvailable(false);
+      
+      // Provide specific error messages
+      let errorMessage = 'Unable to access camera. ';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage += 'Please allow camera permissions and try again.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage += 'No camera found on your device.';
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage += 'Camera not supported in this browser.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += 'Camera is already in use by another application.';
+      } else if (error.name === 'OverconstrainedError') {
+        errorMessage += 'Camera does not meet the required constraints.';
+      } else if (error.name === 'TypeError') {
+        errorMessage += 'Camera access failed. Please try uploading a file instead.';
+      } else {
+        errorMessage += 'Please check camera permissions or try uploading a file instead.';
+      }
+      
+      setCameraError(errorMessage);
+      alert(errorMessage);
+      
+      // Fallback: Show file upload option
+      console.log('Camera failed, suggesting file upload as fallback');
     }
   };
 
@@ -294,12 +340,42 @@ export default function Claim() {
               <Camera className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-800 mb-2">Take Photo</h3>
               <p className="text-gray-600 mb-4">Capture bill using your camera</p>
+              
+              {/* Camera Status Indicator */}
+              <div className="mb-3">
+                {cameraAvailable ? (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-full">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-green-700">Camera Available</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 border border-red-200 rounded-full">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span className="text-xs text-red-700">Camera Unavailable</span>
+                  </div>
+                )}
+              </div>
+              
               <button
                 onClick={startCamera}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 mx-auto"
               >
-                Open Camera
+                📷 Open Camera
               </button>
+              
+              {/* Camera Fallback Notice */}
+              <p className="text-xs text-gray-500 mt-2">
+                💡 If camera doesn't work, use file upload above
+              </p>
+              
+              {/* Camera Error Display */}
+              {cameraError && (
+                <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-xs text-red-700">
+                    ⚠️ {cameraError}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -308,26 +384,70 @@ export default function Claim() {
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-4 max-w-md w-full mx-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">📸 Camera</h3>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full rounded-lg mb-4"
-                />
+                
+                {/* Camera Instructions */}
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    📋 <strong>Instructions:</strong> Position your hospital bill clearly in the camera view. 
+                    Ensure good lighting and avoid shadows.
+                  </p>
+                </div>
+                
+                {/* Video Container */}
+                <div className="relative mb-4">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full rounded-lg border-2 border-gray-300"
+                    style={{ minHeight: '300px' }}
+                  />
+                  
+                  {/* Camera Status */}
+                  <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                    📹 Live
+                  </div>
+                  
+                  {/* Camera Not Working Notice */}
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 rounded-lg" 
+                       style={{ display: 'none' }} 
+                       id="camera-notice">
+                    <div className="text-white text-center p-4">
+                      <p className="text-lg mb-2">📷 Camera Loading...</p>
+                      <p className="text-sm">Please allow camera permissions</p>
+                    </div>
+                  </div>
+                </div>
+                
                 <canvas ref={canvasRef} className="hidden" />
+                
+                {/* Action Buttons */}
                 <div className="flex gap-2">
                   <button
                     onClick={capturePhoto}
-                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                    className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                   >
-                    📷 Capture
+                    📷 Capture Photo
                   </button>
                   <button
                     onClick={stopCamera}
-                    className="flex-1 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700"
+                    className="flex-1 bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
                   >
                     ❌ Cancel
                   </button>
+                </div>
+                
+                {/* Camera Troubleshooting */}
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    🔧 <strong>Troubleshooting:</strong> If camera doesn't work, try:
+                  </p>
+                  <ul className="text-xs text-yellow-700 mt-1 ml-4 list-disc">
+                    <li>Allow camera permissions in browser</li>
+                    <li>Use HTTPS (required for camera)</li>
+                    <li>Try uploading a file instead</li>
+                  </ul>
                 </div>
               </div>
             </div>
