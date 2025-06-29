@@ -299,11 +299,37 @@ export default function Claim() {
 
       console.log('Fields extracted:', extractedCount, 'out of 5');
 
+      // CRITICAL: Verify that the extracted name matches the logged-in user's name
+      const verifyNameMatch = () => {
+        if (!extractedFields.name || !user || !user.name) {
+          return false;
+        }
+        
+        // Normalize names for comparison (remove spaces, convert to lowercase)
+        const extractedName = extractedFields.name.toLowerCase().replace(/\s+/g, '');
+        const userName = user.name.toLowerCase().replace(/\s+/g, '');
+        
+        console.log('Name comparison:', {
+          extracted: extractedName,
+          user: userName,
+          match: extractedName === userName
+        });
+        
+        return extractedName === userName;
+      };
+
+      const nameMatches = verifyNameMatch();
+
       if (extractedCount === 0) {
         // No information extracted at all
         setIsVerified(false);
         setVerificationError(`❌ No relevant information could be extracted from this image.\n\nPossible reasons:\n• This is not a hospital bill or medical document\n• The image is too blurry or unclear\n• The document format is not recognized\n• The text is not in English\n\nPlease try uploading a clear image of a hospital bill or medical document.`);
         setProcessingStep('Verification failed - no relevant data');
+      } else if (!nameMatches) {
+        // Name doesn't match the logged-in user
+        setIsVerified(false);
+        setVerificationError(`❌ Name verification failed!\n\nExtracted name: "${extractedFields.name}"\nLogged-in user: "${user?.name}"\n\nThis document appears to belong to a different person. Please ensure you're uploading your own hospital bill or log in with the correct account.`);
+        setProcessingStep('Verification failed - name mismatch');
       } else if (extractedCount < 3) {
         // Some information extracted but not enough
         const missingFields = [];
@@ -317,7 +343,7 @@ export default function Claim() {
         setVerificationError(`⚠️ Partial information extracted (${extractedCount}/5 fields).\n\nMissing information:\n• ${missingFields.join('\n• ')}\n\nPlease ensure the image clearly shows all required information or try a different document.`);
         setProcessingStep('Verification failed - incomplete data');
       } else {
-        // Sufficient information extracted
+        // Sufficient information extracted and name matches
         setIsVerified(true);
         setProcessingStep('Verification successful!');
       }
@@ -590,8 +616,11 @@ export default function Claim() {
                 <div>
                   <p className="text-sm font-medium text-yellow-800">Important Note:</p>
                   <p className="text-xs text-yellow-700">
-                    Sample images work Only with <strong>Vandan Dalvi</strong> demo account (Mobile: 9028833979). 
-                    Other accounts verification gets rejected if want to try with other accounts new sample image needed with login user name in bill.
+                    Sample images work best with <strong>Vandan Dalvi</strong> demo account (Mobile: 9028833979). 
+                    Other accounts may show different verification results.
+                  </p>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    <strong>Security Feature:</strong> The system verifies that the document name matches the logged-in user's name.
                   </p>
                 </div>
               </div>
