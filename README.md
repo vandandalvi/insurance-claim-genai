@@ -195,16 +195,7 @@ insurance-claim-genai/
 2. Create a feature branch
 3. Make your changes
 4. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For support and questions:
-- **Contact**: 9038844756
-- **Email**: support@claimsense.com
+5. Notify ME 
 
 ## 🏆 Hackathon Project
 
