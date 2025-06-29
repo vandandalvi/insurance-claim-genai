@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Upload, FileText, CheckCircle, XCircle, User, Calendar, MapPin, DollarSign, Activity, ArrowRight, AlertCircle, Loader, AlertTriangle, Eye, Clock, Building, Camera } from 'lucide-react';
 import { createWorker } from 'tesseract.js';
 import axios from 'axios';
+import willApproveImage from '../assets/willApprove.png';
+import willNotApprovedImage from '../assets/willNotApproved.jpg';
 
 export default function Claim() {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -17,6 +19,9 @@ export default function Claim() {
   const [capturedImage, setCapturedImage] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
   const [verificationError, setVerificationError] = useState('');
+  const [showImagePreview, setShowImagePreview] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState('');
+  const [previewImageName, setPreviewImageName] = useState('');
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -244,6 +249,17 @@ export default function Claim() {
       setExtractedText(text);
       await worker.terminate();
 
+      // Check if OCR extracted any meaningful text
+      if (!text || text.trim().length < 10) {
+        setIsVerified(false);
+        setVerificationError("❌ No readable text found in the image. Please ensure:\n• The image is clear and not blurry\n• The document contains text (not just images)\n• The text is properly oriented\n• There's sufficient lighting");
+        setProcessingStep('OCR failed - no readable text');
+        setIsProcessing(false);
+        return;
+      }
+
+      console.log('OCR Text extracted:', text);
+
       // Step 2: AI Analysis
       setProcessingStep('Analyzing document with AI...');
       const formData = new FormData();
@@ -258,22 +274,50 @@ export default function Claim() {
       const result = response.data;
       setExtractedData(result);
 
-      // Step 3: Simple Verification - Just check if we got basic info
+      // Step 3: Enhanced Verification with detailed feedback
       setProcessingStep('Verifying information...');
       
       // Debug logging
       console.log('Extracted Data:', result);
       console.log('User Data:', user);
 
-      // Simple verification - just check if we have basic information
-      const hasBasicInfo = result.name || result.age || result.hospital || result.amount;
+      // Check what information was extracted
+      const extractedFields = {
+        name: result.name,
+        age: result.age,
+        hospital: result.hospital,
+        amount: result.amount,
+        reason: result.reason
+      };
 
-      if (!hasBasicInfo) {
+      console.log('Extracted fields:', extractedFields);
+
+      // Count how many fields were successfully extracted
+      const extractedCount = Object.values(extractedFields).filter(field => 
+        field && field.toString().trim().length > 0
+      ).length;
+
+      console.log('Fields extracted:', extractedCount, 'out of 5');
+
+      if (extractedCount === 0) {
+        // No information extracted at all
         setIsVerified(false);
-        setVerificationError("Could not extract sufficient information from the document. Please ensure the image is clear and contains patient details.");
-        setProcessingStep('Verification failed - insufficient data');
+        setVerificationError(`❌ No relevant information could be extracted from this image.\n\nPossible reasons:\n• This is not a hospital bill or medical document\n• The image is too blurry or unclear\n• The document format is not recognized\n• The text is not in English\n\nPlease try uploading a clear image of a hospital bill or medical document.`);
+        setProcessingStep('Verification failed - no relevant data');
+      } else if (extractedCount < 3) {
+        // Some information extracted but not enough
+        const missingFields = [];
+        if (!extractedFields.name) missingFields.push('Patient Name');
+        if (!extractedFields.age) missingFields.push('Age');
+        if (!extractedFields.hospital) missingFields.push('Hospital Name');
+        if (!extractedFields.amount) missingFields.push('Amount');
+        if (!extractedFields.reason) missingFields.push('Treatment Reason');
+
+        setIsVerified(false);
+        setVerificationError(`⚠️ Partial information extracted (${extractedCount}/5 fields).\n\nMissing information:\n• ${missingFields.join('\n• ')}\n\nPlease ensure the image clearly shows all required information or try a different document.`);
+        setProcessingStep('Verification failed - incomplete data');
       } else {
-        // If we have basic info, consider it verified
+        // Sufficient information extracted
         setIsVerified(true);
         setProcessingStep('Verification successful!');
       }
@@ -281,22 +325,28 @@ export default function Claim() {
     } catch (error) {
       console.error('Error processing image:', error);
       
-      // More specific error messages
+      // Enhanced error handling with specific messages
       if (error.response) {
         // Server responded with error
         if (error.response.status === 500) {
-          setVerificationError('Server error: Please try again or contact support.');
+          setVerificationError('❌ Server error occurred while processing the image. This might be due to:\n• Unsupported image format\n• Corrupted image file\n• Server temporarily unavailable\n\nPlease try again or use a different image.');
         } else if (error.response.status === 413) {
-          setVerificationError('File too large. Please use a smaller image file.');
+          setVerificationError('❌ File too large. Please use an image smaller than 10MB.');
+        } else if (error.response.status === 400) {
+          setVerificationError('❌ Invalid image format. Please upload a valid image file (JPG, PNG, etc.).');
         } else {
-          setVerificationError(`Server error (${error.response.status}): ${error.response.data?.error || 'Unknown error'}`);
+          setVerificationError(`❌ Server error (${error.response.status}): ${error.response.data?.error || 'Unknown server error'}\n\nPlease try again or contact support.`);
         }
       } else if (error.request) {
         // Network error
-        setVerificationError('Network error: Please check your internet connection and try again.');
+        setVerificationError('❌ Network error: Unable to connect to the server.\n\nPlease check your internet connection and try again.');
       } else {
-        // Other errors
-        setVerificationError('Error processing image. Please try again with a different image.');
+        // Other errors (like OCR failures)
+        if (error.message.includes('OCR') || error.message.includes('text')) {
+          setVerificationError('❌ Text extraction failed. The image might be:\n• Too blurry or unclear\n• Not containing readable text\n• In an unsupported language\n• Upside down or rotated\n\nPlease try a clearer image with readable text.');
+        } else {
+          setVerificationError(`❌ Error processing image: ${error.message}\n\nPlease try again with a different image.`);
+        }
       }
       setProcessingStep('Processing failed');
     } finally {
@@ -526,6 +576,158 @@ export default function Claim() {
             </div>
           </div>
 
+          {/* Demo Guide for Judges */}
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">👨‍⚖️</span>
+              <h3 className="font-semibold text-blue-800">Demo Guide for Judges</h3>
+            </div>
+            
+            {/* Important Note */}
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚠️</span>
+                <div>
+                  <p className="text-sm font-medium text-yellow-800">Important Note:</p>
+                  <p className="text-xs text-yellow-700">
+                    Sample images work Only with <strong>Vandan Dalvi</strong> demo account (Mobile: 9028833979). 
+                    Other accounts verification gets rejected if want to try with other accounts new sample image needed with login user name in bill.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+              <div>
+                <h4 className="font-medium mb-2">✅ Approved Scenario:</h4>
+                <ul className="space-y-1 ml-4">
+                  <li>• Clear hospital bill image</li>
+                  <li>• AI extracts all required fields</li>
+                  <li>• Low fraud risk score</li>
+                  <li>• Verification successful</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">❌ Rejected Scenario:</h4>
+                <ul className="space-y-1 ml-4">
+                  <li>• Blurry or unclear document</li>
+                  <li>• AI fails to extract data</li>
+                  <li>• Detailed error messages</li>
+                  <li>• Helpful suggestions provided</li>
+                </ul>
+              </div>
+            </div>
+            <p className="text-xs text-blue-600 mt-3 text-center">
+              💡 Click the sample buttons below to see both scenarios in action!
+            </p>
+          </div>
+
+          {/* Sample Images for Demo */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
+            <h3 className="text-lg font-semibold text-purple-800 mb-3 text-center">🎯 Demo Images for Judges</h3>
+            <p className="text-sm text-purple-700 text-center mb-4">Click these buttons to quickly showcase different scenarios</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Approved Sample */}
+              <div className="text-center">
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      // Create a file from the sample image
+                      fetch(willApproveImage)
+                        .then(response => response.blob())
+                        .then(blob => {
+                          const file = new File([blob], 'approved-sample.png', { type: 'image/png' });
+                          setSelectedFile(file);
+                          setCapturedImage(null);
+                          setExtractedData(null);
+                          setIsVerified(false);
+                          setVerificationError('');
+                          console.log('✅ Loaded approved sample image');
+                        })
+                        .catch(error => {
+                          console.error('Error loading approved sample:', error);
+                          alert('Error loading sample image. Please try again.');
+                        });
+                    }}
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-4 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-lg">✅</span>
+                      <div className="text-left">
+                        <div className="font-semibold">Approved Claim Sample</div>
+                        <div className="text-xs opacity-90">Clear hospital bill - Will be approved</div>
+                      </div>
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setPreviewImageUrl(willApproveImage);
+                      setPreviewImageName('Approved Sample - Clear Hospital Bill');
+                      setShowImagePreview(true);
+                    }}
+                    className="w-full bg-green-100 text-green-700 py-2 px-4 rounded-lg hover:bg-green-200 transition-colors border border-green-300 text-sm font-medium"
+                  >
+                    👁️ View Image
+                  </button>
+                </div>
+              </div>
+
+              {/* Rejected Sample */}
+              <div className="text-center">
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      // Create a file from the sample image
+                      fetch(willNotApprovedImage)
+                        .then(response => response.blob())
+                        .then(blob => {
+                          const file = new File([blob], 'rejected-sample.jpg', { type: 'image/jpeg' });
+                          setSelectedFile(file);
+                          setCapturedImage(null);
+                          setExtractedData(null);
+                          setIsVerified(false);
+                          setVerificationError('');
+                          console.log('❌ Loaded rejected sample image');
+                        })
+                        .catch(error => {
+                          console.error('Error loading rejected sample:', error);
+                          alert('Error loading sample image. Please try again.');
+                        });
+                    }}
+                    className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-3 px-4 rounded-lg hover:from-red-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-lg">❌</span>
+                      <div className="text-left">
+                        <div className="font-semibold">Rejected Claim Sample</div>
+                        <div className="text-xs opacity-90">Unclear document - Will be rejected</div>
+                      </div>
+                    </div>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setPreviewImageUrl(willNotApprovedImage);
+                      setPreviewImageName('Rejected Sample - Unclear Document');
+                      setShowImagePreview(true);
+                    }}
+                    className="w-full bg-red-100 text-red-700 py-2 px-4 rounded-lg hover:bg-red-200 transition-colors border border-red-300 text-sm font-medium"
+                  >
+                    👁️ View Image
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-3 text-center">
+              <p className="text-xs text-purple-600">
+                💡 These sample images demonstrate our AI's ability to distinguish between valid and invalid documents
+              </p>
+            </div>
+          </div>
+
           {/* Camera Interface */}
           {showCamera && (
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
@@ -633,6 +835,32 @@ export default function Claim() {
                   className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
                 >
                   🔄
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Sample Image Preview */}
+          {selectedFile && (selectedFile.name.includes('approved-sample') || selectedFile.name.includes('rejected-sample')) && (
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-lg">🎯</span>
+                <h4 className="font-semibold text-yellow-800">Demo Sample Selected</h4>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <p className="text-sm text-yellow-700 mb-2">
+                    <strong>File:</strong> {selectedFile.name}
+                  </p>
+                  <p className="text-sm text-yellow-700">
+                    <strong>Type:</strong> {selectedFile.name.includes('approved') ? '✅ Approved Scenario' : '❌ Rejected Scenario'}
+                  </p>
+                </div>
+                <button
+                  onClick={resetForm}
+                  className="px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 transition-colors"
+                >
+                  Clear Sample
                 </button>
               </div>
             </div>
@@ -777,10 +1005,24 @@ export default function Claim() {
 
             {/* Verification Error */}
             {verificationError && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <XCircle className="w-5 h-5 text-red-600" />
-                  <span className="text-red-800 font-medium">{verificationError}</span>
+              <div className="mb-6 p-6 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h4 className="text-red-800 font-semibold mb-2">Processing Error</h4>
+                    <div className="text-red-700 whitespace-pre-line text-sm leading-relaxed">
+                      {verificationError}
+                    </div>
+                    <div className="mt-4 p-3 bg-red-100 rounded-lg">
+                      <p className="text-red-800 text-sm font-medium mb-2">💡 Quick Tips:</p>
+                      <ul className="text-red-700 text-sm space-y-1">
+                        <li>• Use a clear, well-lit image of a hospital bill</li>
+                        <li>• Ensure text is readable and not blurry</li>
+                        <li>• Make sure the document contains patient details</li>
+                        <li>• Try different angles if the first attempt fails</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -879,6 +1121,101 @@ export default function Claim() {
             <li>• Use camera capture for best results with physical documents</li>
           </ul>
         </div>
+
+        {/* Standalone Error Display - When processing fails completely */}
+        {verificationError && !extractedData && !isProcessing && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <XCircle className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Processing Failed</h2>
+              <p className="text-lg font-semibold text-red-600">❌ Unable to process document</p>
+            </div>
+
+            {/* Error Details */}
+            <div className="p-6 bg-red-50 border border-red-200 rounded-lg mb-6">
+              <div className="flex items-start space-x-3">
+                <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="text-red-800 font-semibold mb-2">What went wrong?</h4>
+                  <div className="text-red-700 whitespace-pre-line text-sm leading-relaxed">
+                    {verificationError}
+                  </div>
+                  <div className="mt-4 p-3 bg-red-100 rounded-lg">
+                    <p className="text-red-800 text-sm font-medium mb-2">💡 How to fix this:</p>
+                    <ul className="text-red-700 text-sm space-y-1">
+                      <li>• Use a clear, well-lit image of a hospital bill</li>
+                      <li>• Ensure text is readable and not blurry</li>
+                      <li>• Make sure the document contains patient details</li>
+                      <li>• Try different angles if the first attempt fails</li>
+                      <li>• Check that the image is not corrupted</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="text-center">
+              <div className="flex gap-4 justify-center">
+                <button 
+                  onClick={resetForm}
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all duration-300 flex items-center gap-2"
+                >
+                  <span>🔄 Try Again</span>
+                </button>
+                <button 
+                  onClick={() => setShowCamera(true)}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 flex items-center gap-2"
+                >
+                  <span>📷 Use Camera</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Image Preview Modal */}
+        {showImagePreview && (
+          <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-800">📷 Sample Image Preview</h3>
+                <button
+                  onClick={() => setShowImagePreview(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="text-center mb-4">
+                <h4 className="text-lg font-medium text-gray-700 mb-2">{previewImageName}</h4>
+                <p className="text-sm text-gray-600">
+                  This is the sample image that will be processed by our AI system
+                </p>
+              </div>
+              
+              <div className="flex justify-center mb-4">
+                <img
+                  src={previewImageUrl}
+                  alt={previewImageName}
+                  className="max-w-full max-h-96 object-contain border rounded-lg shadow-lg"
+                />
+              </div>
+              
+              <div className="text-center">
+                <button
+                  onClick={() => setShowImagePreview(false)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Close Preview
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

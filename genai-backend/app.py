@@ -84,8 +84,34 @@ def analyze_fraud_indicators(extracted_data, user_data):
 @app.route("/upload", methods=["POST"])
 def upload():
     try:
+        print("📸 Upload endpoint called")
+        
+        # Check if file is present
+        if "file" not in request.files:
+            print("❌ No file in request")
+            return jsonify({"error": "No file provided"}), 400
+        
         image_file = request.files["file"]
-        img = Image.open(image_file.stream)
+        if image_file.filename == '':
+            print("❌ No file selected")
+            return jsonify({"error": "No file selected"}), 400
+        
+        print(f"📁 File received: {image_file.filename}")
+        
+        # Open and validate image
+        try:
+            img = Image.open(image_file.stream)
+            print(f"🖼️ Image opened successfully: {img.size}")
+        except Exception as img_error:
+            print(f"❌ Error opening image: {img_error}")
+            return jsonify({"error": f"Invalid image file: {str(img_error)}"}), 400
+
+        # Check API key
+        if not api_key or api_key == "YOUR_VALID_GEMINI_API_KEY_HERE":
+            print("❌ Invalid API key")
+            return jsonify({"error": "API key not configured properly"}), 500
+
+        print("🔑 API key validated, calling Gemini AI...")
 
         # Enhanced prompt for better extraction and fraud detection
         prompt = """
@@ -119,18 +145,32 @@ def upload():
         }
         """
 
-        chat = model.start_chat()
-        response = chat.send_message([prompt, img])
+        try:
+            chat = model.start_chat()
+            print("💬 Chat session started")
+            
+            response = chat.send_message([prompt, img])
+            print("✅ Gemini AI response received")
+            
+            text = response.text
+            print("📝 Gemini Output:", text[:200] + "..." if len(text) > 200 else text)
 
-        text = response.text
-        print("Gemini Output:", text)
+            # Extract JSON manually
+            json_match = re.search(r'\{.*\}', text, re.DOTALL)
+            if json_match:
+                try:
+                    extracted = json.loads(json_match.group())
+                    print("✅ JSON extracted successfully")
+                except json.JSONDecodeError as json_error:
+                    print(f"❌ JSON parsing error: {json_error}")
+                    extracted = {"raw": text.strip(), "error": "JSON parsing failed"}
+            else:
+                print("❌ No JSON found in response")
+                extracted = {"raw": text.strip(), "error": "No structured data found"}
 
-        # Extract JSON manually
-        json_match = re.search(r'\{.*\}', text, re.DOTALL)
-        if json_match:
-            extracted = json.loads(json_match.group())
-        else:
-            extracted = {"raw": text.strip()}
+        except Exception as ai_error:
+            print(f"❌ Gemini AI error: {ai_error}")
+            return jsonify({"error": f"AI processing failed: {str(ai_error)}"}), 500
 
         # Get user data for fraud analysis
         user_data = None
@@ -144,11 +184,23 @@ def upload():
                     "claimedAmount": 200000
                 }
             }
-        except:
+            print("👤 User data loaded for fraud analysis")
+        except Exception as user_error:
+            print(f"❌ Error loading user data: {user_error}")
             pass
 
         # Perform fraud detection analysis
-        fraud_analysis = analyze_fraud_indicators(extracted, user_data)
+        try:
+            fraud_analysis = analyze_fraud_indicators(extracted, user_data)
+            print("🛡️ Fraud analysis completed")
+        except Exception as fraud_error:
+            print(f"❌ Fraud analysis error: {fraud_error}")
+            fraud_analysis = {
+                "fraud_score": 0,
+                "fraud_reasons": ["Analysis failed"],
+                "risk_level": "Unknown",
+                "is_suspicious": False
+            }
         
         # Combine results
         result = {
@@ -156,11 +208,30 @@ def upload():
             "fraud_detection": fraud_analysis
         }
 
+        print("✅ Processing completed successfully")
         return jsonify(result)
 
     except Exception as e:
-        print("Error:", e)
+        print(f"❌ General error in upload endpoint: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
+@app.route("/", methods=["GET"])
+def health_check():
+    return jsonify({
+        "status": "healthy",
+        "message": "ClaimSense Backend is running",
+        "api_key_configured": bool(api_key and api_key != "YOUR_VALID_GEMINI_API_KEY_HERE"),
+        "gemini_model": "gemini-1.5-flash"
+    })
+
+@app.route("/test", methods=["GET"])
+def test_endpoint():
+    return jsonify({
+        "message": "Backend is working!",
+        "timestamp": "2024-01-01T00:00:00Z"
+    })
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

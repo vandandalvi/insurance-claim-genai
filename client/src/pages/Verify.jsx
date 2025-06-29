@@ -670,7 +670,7 @@ export default function Verify() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-4">
                 <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-lg">
-                  <DollarSign className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <span className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5 font-bold text-lg">₹</span>
                   <div>
                     <p className="text-sm font-medium text-gray-600">Claim Amount</p>
                     <p className="text-xl font-bold text-gray-900">₹{extracted.amount}</p>
