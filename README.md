@@ -32,12 +32,12 @@ A comprehensive insurance claim processing platform that leverages Generative AI
 
 ### Backend
 - **Flask** (Python)
-- **Google Gemini AI** for document analysis
+- **Google Gemini AI** for document analysis and for ChatBot
 - **Flask-CORS** for cross-origin requests
 - **PIL** for image processing
 
 ### AI/ML
-- **Google Gemini 1.5 Flash** for document analysis
+- **Google Gemini 1.5 Flash** for document analysis and for ChatBot
 - **Custom fraud detection algorithms**
 - **Multi-language NLP processing**
 
