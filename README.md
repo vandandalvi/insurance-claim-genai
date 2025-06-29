@@ -199,7 +199,7 @@ insurance-claim-genai/
 
 ## 🏆 Hackathon Project
 
-This project was developed for the BFSI Hackathon, demonstrating:
+This project was developed for the DSW Hackathon, demonstrating:
 - Real-world problem solving
 - AI/ML integration
 - Modern web development
