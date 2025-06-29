@@ -155,6 +155,12 @@ insurance-claim-genai/
 
 ## 🎯 Key Features Explained
 
+### Document Processing
+- **OCR Integration**: Text extraction from images
+- **AI Analysis**: Gemini AI for intelligent processing
+- **Quality Assessment**: Document authenticity checks
+- **Data Validation**: Cross-reference with user profiles
+- 
 ### Fraud Detection System
 - **Risk Scoring**: 0-100% risk assessment
 - **Pattern Analysis**: Detects suspicious claim patterns
@@ -166,12 +172,6 @@ insurance-claim-genai/
 - **Dynamic Responses**: No repetitive template messages
 - **Context Awareness**: Remembers conversation history
 - **Empathetic Responses**: Caring and supportive tone
-
-### Document Processing
-- **OCR Integration**: Text extraction from images
-- **AI Analysis**: Gemini AI for intelligent processing
-- **Quality Assessment**: Document authenticity checks
-- **Data Validation**: Cross-reference with user profiles
 
 ## 🚀 Deployment
 
@@ -185,7 +185,7 @@ insurance-claim-genai/
 3. Start command: `python app.py`
 
 ### Live Demo URLs
-- **Frontend**: https://claimsense-frontend-71pr.onrender.com
+- **Frontend**: https://insurance-claim-genai.vercel.app/login
 - **Backend**: https://claimsense-backend-71pr.onrender.com
 - **Chatbot**: https://claimsense-chatbot-71pr.onrender.com
 
