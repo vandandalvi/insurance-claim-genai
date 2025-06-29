@@ -248,6 +248,79 @@ User asked: "{user_msg}"
         print("Chat error:", e)
         return jsonify({ "error": str(e) }), 500
 
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        "error": "Endpoint not found",
+        "message": "The requested API endpoint does not exist",
+        "available_endpoints": [
+            "POST /chat - AI chatbot endpoint",
+            "GET / - Health check"
+        ],
+        "status": 404
+    }), 404
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    return jsonify({
+        "error": "Method not allowed",
+        "message": "This endpoint does not support the requested HTTP method",
+        "status": 405
+    }), 405
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return jsonify({
+        "error": "Internal server error",
+        "message": "Something went wrong on the server. Please try again later.",
+        "status": 500
+    }), 500
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    return jsonify({
+        "error": "Unexpected error",
+        "message": "An unexpected error occurred. Please try again.",
+        "status": 500
+    }), 500
+
+# Additional utility endpoints
+@app.route("/", methods=["GET"])
+def health_check():
+    return jsonify({
+        "status": "healthy",
+        "message": "ClaimSense Chatbot Backend is running",
+        "api_key_configured": bool(chat_api_key and chat_api_key != "YOUR_VALID_GEMINI_API_KEY_HERE"),
+        "gemini_model": "gemini-1.5-flash"
+    })
+
+@app.route("/api/status", methods=["GET"])
+def api_status():
+    return jsonify({
+        "status": "operational",
+        "service": "ClaimSense Chatbot Backend",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/",
+            "chat": "/chat",
+            "status": "/api/status"
+        }
+    })
+
+@app.route("/api/info", methods=["GET"])
+def api_info():
+    return jsonify({
+        "name": "ClaimSense Chatbot Backend API",
+        "description": "AI-powered insurance chatbot backend",
+        "features": [
+            "Multi-language support (English, Hindi, Marathi)",
+            "Dynamic AI responses",
+            "Context-aware conversations"
+        ],
+        "technology": "Flask + Google Gemini AI"
+    })
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(debug=False, host="0.0.0.0", port=port)

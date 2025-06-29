@@ -233,6 +233,72 @@ def test_endpoint():
         "timestamp": "2024-01-01T00:00:00Z"
     })
 
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+        "error": "Endpoint not found",
+        "message": "The requested API endpoint does not exist",
+        "available_endpoints": [
+            "GET / - Health check",
+            "POST /upload - Upload and process documents",
+            "GET /test - Test endpoint"
+        ],
+        "status": 404
+    }), 404
+
+@app.errorhandler(405)
+def method_not_allowed(error):
+    return jsonify({
+        "error": "Method not allowed",
+        "message": "This endpoint does not support the requested HTTP method",
+        "status": 405
+    }), 405
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return jsonify({
+        "error": "Internal server error",
+        "message": "Something went wrong on the server. Please try again later.",
+        "status": 500
+    }), 500
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    return jsonify({
+        "error": "Unexpected error",
+        "message": "An unexpected error occurred. Please try again.",
+        "status": 500
+    }), 500
+
+# Additional utility endpoints
+@app.route("/api/status", methods=["GET"])
+def api_status():
+    return jsonify({
+        "status": "operational",
+        "service": "ClaimSense Backend",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/",
+            "upload": "/upload",
+            "test": "/test",
+            "status": "/api/status"
+        }
+    })
+
+@app.route("/api/info", methods=["GET"])
+def api_info():
+    return jsonify({
+        "name": "ClaimSense Backend API",
+        "description": "AI-powered insurance claim processing backend",
+        "features": [
+            "Document OCR and extraction",
+            "Fraud detection",
+            "AI-powered analysis"
+        ],
+        "technology": "Flask + Google Gemini AI"
+    })
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=False, host='0.0.0.0', port=port)

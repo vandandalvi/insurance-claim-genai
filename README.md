@@ -32,12 +32,12 @@ A comprehensive insurance claim processing platform that leverages Generative AI
 
 ### Backend
 - **Flask** (Python)
-- **Google Gemini AI** for document analysis
+- **Google Gemini AI** for document analysis and for ChatBot
 - **Flask-CORS** for cross-origin requests
 - **PIL** for image processing
 
 ### AI/ML
-- **Google Gemini 1.5 Flash** for document analysis
+- **Google Gemini 1.5 Flash** for document analysis and for ChatBot
 - **Custom fraud detection algorithms**
 - **Multi-language NLP processing**
 
@@ -155,6 +155,12 @@ insurance-claim-genai/
 
 ## 🎯 Key Features Explained
 
+### Document Processing
+- **OCR Integration**: Text extraction from images
+- **AI Analysis**: Gemini AI for intelligent processing
+- **Quality Assessment**: Document authenticity checks
+- **Data Validation**: Cross-reference with user profiles
+- 
 ### Fraud Detection System
 - **Risk Scoring**: 0-100% risk assessment
 - **Pattern Analysis**: Detects suspicious claim patterns
@@ -166,12 +172,6 @@ insurance-claim-genai/
 - **Dynamic Responses**: No repetitive template messages
 - **Context Awareness**: Remembers conversation history
 - **Empathetic Responses**: Caring and supportive tone
-
-### Document Processing
-- **OCR Integration**: Text extraction from images
-- **AI Analysis**: Gemini AI for intelligent processing
-- **Quality Assessment**: Document authenticity checks
-- **Data Validation**: Cross-reference with user profiles
 
 ## 🚀 Deployment
 
@@ -185,7 +185,7 @@ insurance-claim-genai/
 3. Start command: `python app.py`
 
 ### Live Demo URLs
-- **Frontend**: https://claimsense-frontend-71pr.onrender.com
+- **Frontend**: https://insurance-claim-genai.vercel.app/login
 - **Backend**: https://claimsense-backend-71pr.onrender.com
 - **Chatbot**: https://claimsense-chatbot-71pr.onrender.com
 
@@ -195,20 +195,11 @@ insurance-claim-genai/
 2. Create a feature branch
 3. Make your changes
 4. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For support and questions:
-- **Contact**: 9038844756
-- **Email**: support@claimsense.com
+5. Notify ME 
 
 ## 🏆 Hackathon Project
 
-This project was developed for the BFSI Hackathon, demonstrating:
+This project was developed for the DSW Hackathon, demonstrating:
 - Real-world problem solving
 - AI/ML integration
 - Modern web development
@@ -217,4 +208,4 @@ This project was developed for the BFSI Hackathon, demonstrating:
 
 ---
 
-**Built with ❤️ for the BFSI Hackathon** 
+**Built with ❤️ for the DSW Hackathon** 

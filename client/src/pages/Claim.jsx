@@ -320,6 +320,36 @@ export default function Claim() {
 
       const nameMatches = verifyNameMatch();
 
+      // Check for quality indicators that suggest a rejected document
+      const checkDocumentQuality = () => {
+        const qualityIssues = [];
+        
+        // Check if name is missing or unclear
+        if (!extractedFields.name || extractedFields.name.length < 2) {
+          qualityIssues.push('Patient name is missing or unclear');
+        }
+        
+        // Check if amount is missing or invalid
+        if (!extractedFields.amount || isNaN(extractedFields.amount) || extractedFields.amount <= 0) {
+          qualityIssues.push('Bill amount is missing or invalid');
+        }
+        
+        // Check if hospital name is missing or too short
+        if (!extractedFields.hospital || extractedFields.hospital.length < 3) {
+          qualityIssues.push('Hospital name is missing or unclear');
+        }
+        
+        // Check if we have very little text overall (suggesting poor quality)
+        if (extractedText && extractedText.trim().length < 50) {
+          qualityIssues.push('Document contains very little readable text');
+        }
+        
+        return qualityIssues;
+      };
+
+      const qualityIssues = checkDocumentQuality();
+      const hasQualityIssues = qualityIssues.length > 0;
+
       if (extractedCount === 0) {
         // No information extracted at all
         setIsVerified(false);
@@ -330,6 +360,11 @@ export default function Claim() {
         setIsVerified(false);
         setVerificationError(`❌ Name verification failed!\n\nExtracted name: "${extractedFields.name}"\nLogged-in user: "${user?.name}"\n\nThis document appears to belong to a different person. Please ensure you're uploading your own hospital bill or log in with the correct account.`);
         setProcessingStep('Verification failed - name mismatch');
+      } else if (hasQualityIssues) {
+        // Document has quality issues that make it unsuitable
+        setIsVerified(false);
+        setVerificationError(`❌ Document quality issues detected!\n\nProblems found:\n• ${qualityIssues.join('\n• ')}\n\nPlease upload a clearer, more complete hospital bill image.`);
+        setProcessingStep('Verification failed - quality issues');
       } else if (extractedCount < 3) {
         // Some information extracted but not enough
         const missingFields = [];
@@ -343,7 +378,7 @@ export default function Claim() {
         setVerificationError(`⚠️ Partial information extracted (${extractedCount}/5 fields).\n\nMissing information:\n• ${missingFields.join('\n• ')}\n\nPlease ensure the image clearly shows all required information or try a different document.`);
         setProcessingStep('Verification failed - incomplete data');
       } else {
-        // Sufficient information extracted and name matches
+        // Sufficient information extracted, name matches, and no quality issues
         setIsVerified(true);
         setProcessingStep('Verification successful!');
       }
