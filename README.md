@@ -186,8 +186,8 @@ insurance-claim-genai/
 
 ### Live Demo URLs
 - **Frontend**: https://insurance-claim-genai.vercel.app/login
-- **Backend**: https://claimsense-backend-71pr.onrender.com
-- **Chatbot**: https://claimsense-chatbot-71pr.onrender.com
+- **Backend**: https://claimsense-backend.onrender.com/
+- **Chatbot**: https://claimsense-chatbot.onrender.com/
 
 ## 🤝 Contributing
 
