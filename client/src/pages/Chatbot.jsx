@@ -19,7 +19,7 @@ export default function Chatbot() {
     try {
       // Use production URLs if available, fallback to localhost for development
       const chatUrl = import.meta.env.VITE_CHAT_URL || 
-                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot.onrender.com");
+                     (window.location.hostname === 'localhost' ? "http://localhost:5001" : "https://claimsense-chatbot-j8at.onrender.com");
       const res = await fetch(`${chatUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
