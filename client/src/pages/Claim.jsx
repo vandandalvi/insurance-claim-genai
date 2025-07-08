@@ -266,7 +266,7 @@ export default function Claim() {
       formData.append('file', selectedFile);
 
       // Use environment variable for API URL, fallback to localhost for development
-      const apiUrl = import.meta.env.VITE_API_URL=https://claimsense-backend-oe74.onrender.com
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const response = await axios.post(`${apiUrl}/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
