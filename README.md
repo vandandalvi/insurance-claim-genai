@@ -198,15 +198,5 @@ insurance-claim-genai/
 4. Submit a pull request
 5. Notify ME 
 
-## 🏆 Hackathon Project
-
-This project was developed for the DSW Hackathon, demonstrating:
-- Real-world problem solving
-- AI/ML integration
-- Modern web development
-- User-centric design
-- Security best practices
-
----
 
 
