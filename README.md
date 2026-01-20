@@ -1,6 +1,6 @@
 # ClaimSense - AI-Powered Insurance Claims Platform
 
-A comprehensive insurance claim processing platform that leverages Generative AI (Gemini) for intelligent document processing, fraud detection, and customer assistance.
+A comprehensive insurance claim processing platform that leverages Generative AI for intelligent document processing, fraud detection, and customer assistance.
 
 ## 🚀 Features
 
